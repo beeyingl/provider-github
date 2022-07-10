@@ -5,18 +5,18 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.8.0
   creationTimestamp: null
-  name: resources.null.template.jet.crossplane.io
+  name: repositories.repository.github.jet.crossplane.io
 spec:
-  group: null.template.jet.crossplane.io
+  group: repository.github.jet.crossplane.io
   names:
     categories:
     - crossplane
     - managed
-    - templatejet
-    kind: Resource
-    listKind: ResourceList
-    plural: resources
-    singular: resource
+    - githubjet
+    kind: Repository
+    listKind: RepositoryList
+    plural: repositories
+    singular: repository
   scope: Cluster
   versions:
   - additionalPrinterColumns:
@@ -35,7 +35,7 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: Resource is the Schema for the Resources API
+        description: Repository is the Schema for the Repositorys API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -50,7 +50,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: ResourceSpec defines the desired state of Resource
+            description: RepositorySpec defines the desired state of Repository
             properties:
               deletionPolicy:
                 default: Delete
@@ -63,13 +63,86 @@ spec:
                 type: string
               forProvider:
                 properties:
-                  triggers:
-                    additionalProperties:
+                  allowAutoMerge:
+                    type: boolean
+                  allowMergeCommit:
+                    type: boolean
+                  allowRebaseMerge:
+                    type: boolean
+                  allowSquashMerge:
+                    type: boolean
+                  archiveOnDestroy:
+                    type: boolean
+                  archived:
+                    type: boolean
+                  autoInit:
+                    type: boolean
+                  defaultBranch:
+                    description: Can only be set after initial repository creation,
+                      and only if the target branch exists
+                    type: string
+                  deleteBranchOnMerge:
+                    type: boolean
+                  description:
+                    type: string
+                  gitignoreTemplate:
+                    type: string
+                  hasDownloads:
+                    type: boolean
+                  hasIssues:
+                    type: boolean
+                  hasProjects:
+                    type: boolean
+                  hasWiki:
+                    type: boolean
+                  homepageUrl:
+                    type: string
+                  isTemplate:
+                    type: boolean
+                  licenseTemplate:
+                    type: string
+                  pages:
+                    items:
+                      properties:
+                        cname:
+                          type: string
+                        source:
+                          items:
+                            properties:
+                              branch:
+                                type: string
+                              path:
+                                type: string
+                            required:
+                            - branch
+                            type: object
+                          type: array
+                      required:
+                      - source
+                      type: object
+                    type: array
+                  private:
+                    type: boolean
+                  template:
+                    items:
+                      properties:
+                        owner:
+                          type: string
+                        repository:
+                          type: string
+                      required:
+                      - owner
+                      - repository
+                      type: object
+                    type: array
+                  topics:
+                    items:
                       type: string
-                    description: A map of arbitrary strings that, when changed, will
-                      force the null resource to be replaced, re-running any associated
-                      provisioners.
-                    type: object
+                    type: array
+                  visibility:
+                    type: string
+                  vulnerabilityAlerts:
+                    type: boolean
                 type: object
               providerConfigRef:
                 default:
@@ -168,11 +241,38 @@ spec:
             - forProvider
             type: object
           status:
-            description: ResourceStatus defines the observed state of Resource.
+            description: RepositoryStatus defines the observed state of Repository.
             properties:
               atProvider:
                 properties:
+                  branches:
+                    items:
+                      properties:
+                        name:
+                          type: string
+                        protected:
+                          type: boolean
+                      type: object
+                    type: array
+                  etag:
+                    type: string
+                  fullName:
+                    type: string
+                  gitCloneUrl:
+                    type: string
+                  htmlUrl:
+                    type: string
+                  httpCloneUrl:
+                    type: string
                   id:
+                    type: string
+                  nodeId:
+                    type: string
+                  repoId:
+                    type: number
+                  sshCloneUrl:
+                    type: string
+                  svnUrl:
                     type: string
                 type: object
               conditions:

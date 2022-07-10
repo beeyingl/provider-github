@@ -19,6 +19,7 @@ package clients
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/crossplane/crossplane-runtime/pkg/resource"
 	"github.com/pkg/errors"
@@ -27,7 +28,7 @@ import (
 
 	"github.com/crossplane/terrajet/pkg/terraform"
 
-	"github.com/crossplane-contrib/provider-jet-template/apis/v1alpha1"
+	"github.com/crossplane-contrib/provider-jet-github/apis/v1alpha1"
 )
 
 const (
@@ -36,7 +37,14 @@ const (
 	errGetProviderConfig    = "cannot get referenced ProviderConfig"
 	errTrackUsage           = "cannot track ProviderConfig usage"
 	errExtractCredentials   = "cannot extract credentials"
-	errUnmarshalCredentials = "cannot unmarshal template credentials as JSON"
+	errUnmarshalCredentials = "cannot unmarshal github credentials as JSON"
+
+	keyBaseURL = "base_url"
+	keyOwner   = "owner"
+	keyToken   = "token"
+
+	// GitHub credentials environment variable names
+	envToken = "GITHUB_TOKEN"
 )
 
 // TerraformSetupBuilder builds Terraform a terraform.SetupFn function which
@@ -69,8 +77,8 @@ func TerraformSetupBuilder(version, providerSource, providerVersion string) terr
 		if err != nil {
 			return ps, errors.Wrap(err, errExtractCredentials)
 		}
-		templateCreds := map[string]string{}
-		if err := json.Unmarshal(data, &templateCreds); err != nil {
+		githubCreds := map[string]string{}
+		if err := json.Unmarshal(data, &githubCreds); err != nil {
 			return ps, errors.Wrap(err, errUnmarshalCredentials)
 		}
 
@@ -79,14 +87,28 @@ func TerraformSetupBuilder(version, providerSource, providerVersion string) terr
 		// credentials via the environment variables. You should specify
 		// credentials via the Terraform main.tf.json instead.
 		/*ps.Env = []string{
-			fmt.Sprintf("%s=%s", "HASHICUPS_USERNAME", templateCreds["username"]),
-			fmt.Sprintf("%s=%s", "HASHICUPS_PASSWORD", templateCreds["password"]),
+			fmt.Sprintf("%s=%s", "HASHICUPS_USERNAME", githubCreds["username"]),
+			fmt.Sprintf("%s=%s", "HASHICUPS_PASSWORD", githubCreds["password"]),
 		}*/
 		// set credentials in Terraform provider configuration
 		/*ps.Configuration = map[string]interface{}{
-			"username": templateCreds["username"],
-			"password": templateCreds["password"],
+			"username": githubCreds["username"],
+			"password": githubCreds["password"],
 		}*/
+
+		// set provider configuration
+		ps.Configuration = map[string]interface{}{}
+		if v, ok := githubCreds[keyBaseURL]; ok {
+			ps.Configuration[keyBaseURL] = v
+		}
+		if v, ok := githubCreds[keyOwner]; ok {
+			ps.Configuration[keyOwner] = v
+		}
+		// set environment variables for sensitive provider configuration
+		ps.Env = []string{
+			fmt.Sprintf("%s=%s", envToken, githubCreds[keyToken]),
+		}
+
 		return ps, nil
 	}
 }
